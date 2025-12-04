@@ -1,0 +1,145 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ student.name }} - CodeAura Admin{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">{{ student.name }}</h1>
+        <form method="POST" action="{{ url_for('admin.delete_student', student_id=student.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure?');">
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Delete
+            </button>
+        </form>
+    </div>
+
+    <!-- Student Info -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Personal Information</h5>
+                    <div class="mb-2">
+                        <label class="text-muted small">Email</label>
+                        <p>{{ student.email }}</p>
+                    </div>
+                    <div class="mb-2">
+                        <label class="text-muted small">Phone</label>
+                        <p>{{ student.phone }}</p>
+                    </div>
+                    <div class="mb-2">
+                        <label class="text-muted small">Stream</label>
+                        <p>{{ student.stream or 'N/A' }}</p>
+                    </div>
+                    <div class="mb-2">
+                        <label class="text-muted small">Age</label>
+                        <p>{{ student.age or 'N/A' }}</p>
+                    </div>
+                    <div class="mb-2">
+                        <label class="text-muted small">Status</label>
+                        <p>
+                            {% if student.status == 'active' %}
+                            <span class="badge bg-success">Active</span>
+                            {% elif student.status == 'inactive' %}
+                            <span class="badge bg-warning">Inactive</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Graduated</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="mb-2">
+                        <label class="text-muted small">Joined</label>
+                        <p>{{ student.joined_date.strftime('%d %b %Y') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enrollments -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Enrollments</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Course</th>
+                                <th>Batch</th>
+                                <th>Status</th>
+                                <th>Enrolled</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for enrollment in enrollments %}
+                            <tr>
+                                <td>{{ enrollment.batch.course.name }}</td>
+                                <td>{{ enrollment.batch.batch_name }}</td>
+                                <td>
+                                    {% if enrollment.status == 'active' %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% elif enrollment.status == 'completed' %}
+                                    <span class="badge bg-info">Completed</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Dropped</span>
+                                    {% endif %}
+                                </td>
+                                <td><small>{{ enrollment.enrollment_date.strftime('%d %b %Y') }}</small></td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-3">No enrollments</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Payments -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Payments</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in payments %}
+                            <tr>
+                                <td>₹{{ "{:,.2f}".format(payment.amount) }}</td>
+                                <td><small>{{ payment.method }}</small></td>
+                                <td>
+                                    {% if payment.status == 'success' %}
+                                    <span class="badge bg-success">Success</span>
+                                    {% elif payment.status == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Failed</span>
+                                    {% endif %}
+                                </td>
+                                <td><small>{{ payment.payment_date.strftime('%d %b %Y') }}</small></td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-3">No payments</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="{{ url_for('admin.students_list') }}" class="btn btn-secondary">Back</a>
+</div>
+{% endblock %}

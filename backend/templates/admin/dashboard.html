@@ -1,0 +1,205 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dashboard - CodeAura Admin{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <h1 class="h2 mb-4">Dashboard</h1>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Students</h5>
+                    <h2 class="mb-0">{{ total_students }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Courses</h5>
+                    <h2 class="mb-0">{{ total_courses }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Active Enrollments</h5>
+                    <h2 class="mb-0">{{ active_enrollments }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Revenue</h5>
+                    <h2 class="mb-0">₹{{ "{:,.2f}".format(total_revenue) }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Enrollment Status</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="enrollmentChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Payment Status</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="paymentChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Students</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Joined</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in recent_students %}
+                                <tr>
+                                    <td><a href="{{ url_for('admin.student_detail', student_id=student.id) }}">{{ student.name }}</a></td>
+                                    <td>{{ student.email }}</td>
+                                    <td><small class="text-muted">{{ student.joined_date.strftime('%d %b %Y') }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Payments</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in recent_payments %}
+                                <tr>
+                                    <td>
+                                        {% set student = payment.student %}
+                                        <a href="{{ url_for('admin.student_detail', student_id=student.id) }}">{{ student.name }}</a>
+                                    </td>
+                                    <td>₹{{ "{:,.2f}".format(payment.amount) }}</td>
+                                    <td>
+                                        {% if payment.status == 'success' %}
+                                        <span class="badge bg-success">Success</span>
+                                        {% elif payment.status == 'pending' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Failed</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Enrollment Status Chart
+    const enrollmentCtx = document.getElementById('enrollmentChart').getContext('2d');
+    new Chart(enrollmentCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [
+                {% for status, count in enrollment_by_status %}
+                '{{ status.capitalize() }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                data: [
+                    {% for status, count in enrollment_by_status %}
+                    {{ count }},
+                    {% endfor %}
+                ],
+                backgroundColor: ['#198754', '#dc3545', '#ffc107']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Payment Status Chart
+    const paymentCtx = document.getElementById('paymentChart').getContext('2d');
+    new Chart(paymentCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [
+                {% for status, count in payment_by_status %}
+                '{{ status.capitalize() }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                data: [
+                    {% for status, count in payment_by_status %}
+                    {{ count }},
+                    {% endfor %}
+                ],
+                backgroundColor: ['#198754', '#ffc107', '#dc3545']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

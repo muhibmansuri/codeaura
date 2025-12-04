@@ -1,0 +1,99 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Notifications - CodeAura Admin{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">Notifications</h1>
+        <a href="{{ url_for('admin.send_notification') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Send Notification
+        </a>
+    </div>
+
+    <!-- Notifications Table -->
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Title</th>
+                        <th>Message</th>
+                        <th>Student</th>
+                        <th>Read</th>
+                        <th>Created</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for notification in notifications.items %}
+                    <tr>
+                        <td><strong>{{ notification.title }}</strong></td>
+                        <td>{{ notification.message[:50] }}...</td>
+                        <td>
+                            {% if notification.student %}
+                            {{ notification.student.name }}
+                            {% else %}
+                            <span class="badge bg-info">Broadcast</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if notification.is_read %}
+                            <i class="bi bi-check-circle text-success"></i>
+                            {% else %}
+                            <i class="bi bi-circle text-muted"></i>
+                            {% endif %}
+                        </td>
+                        <td><small>{{ notification.created_at.strftime('%d %b %Y %H:%M') }}</small></td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin.delete_notification_admin', notification_id=notification.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure?');">
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4">No notifications found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if notifications.pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if notifications.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('admin.notifications_list', page=notifications.prev_num) }}">Previous</a>
+            </li>
+            {% endif %}
+
+            {% for page_num in notifications.iter_pages(left_edge=1, right_edge=3) %}
+                {% if page_num %}
+                    {% if page_num == notifications.page %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin.notifications_list', page=page_num) }}">{{ page_num }}</a>
+                    </li>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+
+            {% if notifications.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('admin.notifications_list', page=notifications.next_num) }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

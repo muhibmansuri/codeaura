@@ -1,0 +1,111 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Payments - CodeAura Admin{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <h1 class="h2 mb-4">Payments</h1>
+
+    <!-- Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-9">
+                    <select class="form-select" name="status">
+                        <option value="">All Status</option>
+                        <option value="success" {% if selected_status == 'success' %}selected{% endif %}>Success</option>
+                        <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="failed" {% if selected_status == 'failed' %}selected{% endif %}>Failed</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payments Table -->
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Student</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments.items %}
+                    <tr>
+                        <td>{{ payment.student.name }}</td>
+                        <td>₹{{ "{:,.2f}".format(payment.amount) }}</td>
+                        <td><small>{{ payment.method }}</small></td>
+                        <td>
+                            {% if payment.status == 'success' %}
+                            <span class="badge bg-success">Success</span>
+                            {% elif payment.status == 'pending' %}
+                            <span class="badge bg-warning">Pending</span>
+                            {% else %}
+                            <span class="badge bg-danger">Failed</span>
+                            {% endif %}
+                        </td>
+                        <td><small>{{ payment.payment_date.strftime('%d %b %Y') }}</small></td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin.update_payment', payment_id=payment.id) }}" style="display:inline;">
+                                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                    <option value="success" {% if payment.status == 'success' %}selected{% endif %}>Success</option>
+                                    <option value="pending" {% if payment.status == 'pending' %}selected{% endif %}>Pending</option>
+                                    <option value="failed" {% if payment.status == 'failed' %}selected{% endif %}>Failed</option>
+                                </select>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4">No payments found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if payments.pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if payments.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('admin.payments_list', page=payments.prev_num, status=selected_status) }}">Previous</a>
+            </li>
+            {% endif %}
+
+            {% for page_num in payments.iter_pages(left_edge=1, right_edge=3) %}
+                {% if page_num %}
+                    {% if page_num == payments.page %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin.payments_list', page=page_num, status=selected_status) }}">{{ page_num }}</a>
+                    </li>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+
+            {% if payments.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('admin.payments_list', page=payments.next_num, status=selected_status) }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

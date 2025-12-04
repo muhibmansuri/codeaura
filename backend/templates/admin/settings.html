@@ -1,0 +1,74 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Settings - CodeAura Admin{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <h1 class="h2 mb-4">Settings</h1>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Admin Profile</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <p>{{ session.admin_username }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <p>
+                            {% if session.admin_role == 'admin' %}
+                            <span class="badge bg-danger">Administrator</span>
+                            {% elif session.admin_role == 'faculty' %}
+                            <span class="badge bg-info">Faculty</span>
+                            {% else %}
+                            <span class="badge bg-warning">Counsellor</span>
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <a href="{{ url_for('admin.logout') }}" class="btn btn-danger">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Application Info</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">App Name</label>
+                        <p>CodeAura</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Version</label>
+                        <p>1.0.0</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <p>Educational App Backend with Flutter Mobile & Admin Panel</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">API Endpoint</label>
+                        <p><code>http://localhost:5000/api</code></p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Admin Panel</label>
+                        <p><code>http://localhost:5000/admin</code></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

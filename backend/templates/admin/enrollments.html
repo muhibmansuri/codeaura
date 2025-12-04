@@ -1,0 +1,111 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Enrollments - CodeAura Admin{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <h1 class="h2 mb-4">Enrollments</h1>
+
+    <!-- Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-9">
+                    <select class="form-select" name="status">
+                        <option value="">All Status</option>
+                        <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="dropped" {% if selected_status == 'dropped' %}selected{% endif %}>Dropped</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Enrollments Table -->
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Student</th>
+                        <th>Course</th>
+                        <th>Batch</th>
+                        <th>Status</th>
+                        <th>Enrolled</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for enrollment in enrollments.items %}
+                    <tr>
+                        <td>{{ enrollment.student.name }}</td>
+                        <td>{{ enrollment.batch.course.name }}</td>
+                        <td>{{ enrollment.batch.batch_name }}</td>
+                        <td>
+                            {% if enrollment.status == 'active' %}
+                            <span class="badge bg-success">Active</span>
+                            {% elif enrollment.status == 'completed' %}
+                            <span class="badge bg-info">Completed</span>
+                            {% else %}
+                            <span class="badge bg-danger">Dropped</span>
+                            {% endif %}
+                        </td>
+                        <td><small>{{ enrollment.enrollment_date.strftime('%d %b %Y') }}</small></td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin.update_enrollment', enrollment_id=enrollment.id) }}" style="display:inline;">
+                                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                    <option value="active" {% if enrollment.status == 'active' %}selected{% endif %}>Active</option>
+                                    <option value="completed" {% if enrollment.status == 'completed' %}selected{% endif %}>Completed</option>
+                                    <option value="dropped" {% if enrollment.status == 'dropped' %}selected{% endif %}>Dropped</option>
+                                </select>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4">No enrollments found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if enrollments.pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if enrollments.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('admin.enrollments_list', page=enrollments.prev_num, status=selected_status) }}">Previous</a>
+            </li>
+            {% endif %}
+
+            {% for page_num in enrollments.iter_pages(left_edge=1, right_edge=3) %}
+                {% if page_num %}
+                    {% if page_num == enrollments.page %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin.enrollments_list', page=page_num, status=selected_status) }}">{{ page_num }}</a>
+                    </li>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+
+            {% if enrollments.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('admin.enrollments_list', page=enrollments.next_num, status=selected_status) }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

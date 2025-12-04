@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: codeaura_db
+    environment:
+      POSTGRES_USER: codeaura_user
+      POSTGRES_PASSWORD: codeaura_password_change_me
+      POSTGRES_DB: codeaura
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U codeaura_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: codeaura_api
+    environment:
+      FLASK_ENV: production
+      DATABASE_URL: postgresql://codeaura_user:codeaura_password_change_me@postgres:5432/codeaura
+      SECRET_KEY: change-this-to-a-random-key
+      JWT_SECRET_KEY: change-this-jwt-key
+      FLASK_APP: app.py
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - uploads:/app/uploads
+    command: gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 app:create_app()
+
+  nginx:
+    image: nginx:alpine
+    container_name: codeaura_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./backend/static:/app/static:ro
+    depends_on:
+      - backend
+    command: nginx -g 'daemon off;'
+
+volumes:
+  postgres_data:
+  uploads:

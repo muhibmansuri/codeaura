@@ -1,0 +1,58 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'Edit' if batch else 'Create' }} Batch - CodeAura Admin{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <h1 class="h2 mb-4">{{ 'Edit' if batch else 'Create' }} Batch</h1>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="batch_name" class="form-label">Batch Name *</label>
+                            <input type="text" class="form-control" id="batch_name" name="batch_name" value="{{ batch.batch_name if batch else '' }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="course_id" class="form-label">Course *</label>
+                            <select class="form-control" id="course_id" name="course_id" required>
+                                <option value="">Select Course</option>
+                                {% for course in courses %}
+                                <option value="{{ course.id }}" {% if batch and batch.course_id == course.id %}selected{% endif %}>{{ course.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="timing" class="form-label">Timing</label>
+                                <input type="text" class="form-control" id="timing" name="timing" placeholder="e.g., 10:00 AM - 12:00 PM" value="{{ batch.timing if batch else '' }}">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="faculty" class="form-label">Faculty</label>
+                                <input type="text" class="form-control" id="faculty" name="faculty" value="{{ batch.faculty if batch else '' }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="start_date" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" value="{{ batch.start_date.strftime('%Y-%m-%d') if batch and batch.start_date else '' }}">
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> {{ 'Update' if batch else 'Create' }}
+                            </button>
+                            <a href="{{ url_for('admin.batches_list') }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
